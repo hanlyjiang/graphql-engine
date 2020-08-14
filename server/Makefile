@@ -3,8 +3,9 @@ SHELL := /bin/bash
 VERSION ?= $(shell ../scripts/get-version.sh)
 export VERSION
 
-registry := hasura
-packager_ver := 20190731
+# 原 hasura/graphql-engine-packager:20190731
+registry := hanlyjiang
+packager_ver := 20200814
 pg_dump_ver := 12
 build_output := /build/_server_output
 
@@ -50,7 +51,7 @@ ci-build:
 # assumes this is built in circleci
 ci-image:
 	mkdir -p packaging/build/rootfs
-	docker create -v /root/ --name dummy alpine:3.4 /bin/true
+	docker create -v /root/ --name dummy alpine:3.12 /bin/true
 	docker cp '$(build_output)/graphql-engine' dummy:/root/
 	docker run --rm --volumes-from dummy '$(registry)/graphql-engine-packager:$(packager_ver)' /build.sh graphql-engine | tar -x -C packaging/build/rootfs
 	strip --strip-unneeded packaging/build/rootfs/bin/graphql-engine

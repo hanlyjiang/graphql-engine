@@ -1,5 +1,5 @@
-FROM hasura/haskell-docker-packager:20190731
-MAINTAINER vamshi@hasura.io
+FROM hanlyjiang/haskell-docker-packager:20200814
+MAINTAINER hanlyjiang@outlook.com
 
 RUN apt-get update && apt-get install -y libpq5 upx \
  && update-ca-certificates \
