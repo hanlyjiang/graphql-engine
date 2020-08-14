@@ -17,8 +17,8 @@ build_output := /build/_server_output
 # This glob is a pretty heavy hammer designed to work regardless of `cabal-install` version (see the
 # aforementioned link for why that’s tricky). If `cabal v2-*` ever gets a better way to do this,
 # please replace this with something less hacky.
-executables_glob := dist-newstyle/build/*/*/graphql-engine-*/**/opt/build/{graphql-engine/graphql-engine,graphql-engine-tests/graphql-engine-tests}
-
+executables_glob := dist-newstyle/build/*/*/graphql-engine-*/**/opt/build/graphql-engine/graphql-engine
+#                   dist-newstyle/build/aarch64-linux/ghc-8.10.1/graphql-engine-1.0.0/x/graphql-engine/opt/build/graphql-engine/
 # These are the directories where `cabal v2-build --enable-coverage` sticks .mix files. It would be
 # much better if cabal-install supported something like stack’s `stack hpc report`, which passes the
 # right `--hpcdir` options automatically.
@@ -54,12 +54,6 @@ ci-build-package:
 	mkdir -p '$(build_output)'
 	echo '$(VERSION)' > '$(build_output)/version.txt'
 	shopt -s failglob globstar && cp $(executables_glob) '$(build_output)/'
-	# Copy the .mix files needed for `hpc` to generate code coverage reports into the build output
-	# directory, only if coverage is enabled (the mix files aren't generated otherwise).
-	if [[ -n '$(enable_coverage)' ]]; then \
-	  mkdir -p '$(build_output)/mix/' && \
-	  shopt -s failglob globstar && cp -R $(mix_dirs_glob) '$(build_output)/mix/'; \
-	fi
 
 # assumes this is built in circleci
 ci-image:
@@ -68,7 +62,7 @@ ci-image:
 	docker cp '$(build_output)/graphql-engine' dummy:/root/
 	docker run --rm --volumes-from dummy '$(registry)/graphql-engine-packager:$(packager_ver)' /build.sh graphql-engine | tar -x -C packaging/build/rootfs
 	strip --strip-unneeded packaging/build/rootfs/bin/graphql-engine
-	cp '/usr/lib/postgresql/$(pg_dump_ver)/bin/pg_dump' packaging/build/rootfs/bin/pg_dump
+	cp 'packaging/build/postgresql/$(pg_dump_ver)/bin/pg_dump' packaging/build/rootfs/bin/pg_dump
 	upx packaging/build/rootfs/bin/graphql-engine
 	docker build -t '$(registry)/graphql-engine:$(VERSION)' packaging/build/
 
@@ -87,4 +81,4 @@ push-latest:
 packager: packaging/packager.df
 	docker build -t '$(registry)/graphql-engine-packager:$(packager_ver)' -f packaging/packager.df ./packaging/
 
-.PHONY: ci-build ci-image ci-save-image ci-load-image push push-latest packager
+.PHONY: ci-build ci-build-package ci-image ci-save-image ci-load-image push push-latest packager
